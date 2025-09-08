@@ -31,30 +31,6 @@ namespace sunlix {
     NoDevice
   };
 
-  /// Policy for handling subsecond phase when applying a new time.
-  enum class AlignMode : std::uint8_t {
-    /**
-     * Keep provided `utc.millis` as phase anchor.
-     * Use when the upstream source provides trustworthy subsecond timing
-     * (e.g., local NTP on LAN, GPS/PPS).
-     */
-    PreserveMillis,
-
-    /**
-     * Snap immediately to ...SS.000 and derive subsequent milliseconds
-     * from MCU monotonic timer (e.g., millis()).
-     * Recommended for WAN NTP where subsecond accuracy is unreliable.
-     */
-    ZeroMillis,
-
-    /**
-     * Wait for the next second boundary and then snap to .000.
-     * Useful to align strictly to hardware RTC second edges.
-     * Implementations should cap the wait (e.g., ~1.2 s).
-     */
-    AlignToSecond
-  };
-
   /// Abstract time provider (e.g., RTC-backed or uptime-backed).
   struct IDateTimeProvider {
     virtual ~IDateTimeProvider() = default;
@@ -64,18 +40,17 @@ namespace sunlix {
 
     /**
      * Get current time in UTC.
-     * @param[out] outUtc Filled on success; fields normalized; millis in [0..999].
+     * @param[out] out Filled on success; fields normalized; millis in [0..999].
      * @return true if time is available.
      */
-    virtual bool nowUtc(DateTime& outUtc) = 0;
+    virtual bool nowUtc(DateTime& out) = 0;
 
     /**
      * Apply a new time value.
      * @param[in] t     New time (millis expected in [0..999]; out-of-range treated as 0).
-     * @param[in] mode  Subsecond alignment policy (default: ZeroMillis).
      * @return true if applied.
      */
-    virtual bool adjust(const DateTime& t, AlignMode mode = AlignMode::ZeroMillis) = 0;
+    virtual bool adjust(const DateTime& t) = 0;
 
     /// Current provider status.
     virtual TimeStatus status() const = 0;

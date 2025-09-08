@@ -17,7 +17,7 @@ bool UptimeDateTimeProvider::begin() {
   return true;
 }
 
-bool UptimeDateTimeProvider::nowUtc(DateTime& outUtc) {
+bool UptimeDateTimeProvider::nowUtc(DateTime& out) {
   if (!started_) {
     status_ = TimeStatus::NotStarted;
     return false;
@@ -28,12 +28,12 @@ bool UptimeDateTimeProvider::nowUtc(DateTime& outUtc) {
   const std::uint32_t add_s   = elapsed / 1000U;
   const std::uint16_t ms      = static_cast<std::uint16_t>(elapsed % 1000U);
 
-  outUtc = addSeconds(base_, add_s);
-  outUtc.millis = ms;
+  out = addSeconds(base_, add_s);
+  out.millis = ms;
   return true;
 }
 
-bool UptimeDateTimeProvider::adjust(const DateTime& t, AlignMode mode) {
+bool UptimeDateTimeProvider::adjust(const DateTime& t) {
   if (!started_) begin();
 
   // Clamp millis to [0..999]; ignore mode for uptime (we always anchor to provided ms)
@@ -42,22 +42,7 @@ bool UptimeDateTimeProvider::adjust(const DateTime& t, AlignMode mode) {
   base_ = t;
   base_.millis = 0;
 
-  const std::uint32_t now_ms = millis();
-
-  switch (mode) {
-    case AlignMode::ZeroMillis:
-      t0_ms_ = now_ms;  // snap to ...SS.000
-      break;
-    case AlignMode::PreserveMillis:
-      t0_ms_ = now_ms - m; // keep provided phase
-      break;
-    case AlignMode::AlignToSecond:
-      // For uptime-only we cannot wait on a hardware second edge.
-      // Emulate: snap to .000 immediately.
-      t0_ms_ = now_ms;
-      break;
-  }
-
+  t0_ms_ = millis();
   status_ = TimeStatus::Ok;
   return true;
 }

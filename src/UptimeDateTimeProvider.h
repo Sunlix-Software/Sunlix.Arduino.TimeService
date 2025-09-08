@@ -17,8 +17,8 @@ public:
   UptimeDateTimeProvider();
 
   bool begin() override;
-  bool nowUtc(DateTime& outUtc) override;
-  bool adjust(const DateTime& t, AlignMode mode = AlignMode::ZeroMillis) override;
+  bool nowUtc(DateTime& out) override;
+  bool adjust(const DateTime& t) override;
   TimeStatus status() const override;
 
 private:
